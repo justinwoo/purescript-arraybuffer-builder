@@ -1,21 +1,17 @@
 { pkgs ? import <nixpkgs> { } }:
 let
-  easy-ps = import
-    (pkgs.fetchFromGitHub {
-      owner = "justinwoo";
-      repo = "easy-purescript-nix";
-      rev = "1ec689df0adf8e8ada7fcfcb513876307ea34226";
-      sha256 = "12hk2zbjkrq2i5fs6xb3x254lnhm9fzkcxph0a7ngxyzfykvf4hi";
-    }) {
-    inherit pkgs;
-  };
+  easy-ps = import (builtins.fetchGit {
+    url = "https://github.com/toastal/easy-purescript-nix";
+    ref = "purs-0.14.1";
+    rev = "5dd6dd1fdad9a5f96d8574ef7160729b7a54f94f";
+  }) { inherit pkgs; };
 in
 pkgs.mkShell {
   buildInputs = [
-    easy-ps.purs-0_13_8
+    easy-ps.purs-0_14_1
     easy-ps.spago
     easy-ps.pulp
-    pkgs.nodejs-13_x
+    pkgs.nodejs-15_x
     pkgs.nodePackages.bower
   ];
   LC_ALL = "C.UTF-8"; # https://github.com/purescript/spago/issues/507
