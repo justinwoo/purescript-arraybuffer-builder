@@ -116,6 +116,6 @@ main = do
     pure $ ((singleton b1 <> singleton b2) <> (singleton b3 <> singleton b4))
          <> ((singleton b5 <> singleton b6) <> (singleton b7 <> singleton b8))
 
-  let tenthou = Array.replicate 10000 2
-  putTest "Stack test" tenthou $ do
-    for_ tenthou  \_ -> putInt8 2
+  let thou = Array.replicate 10000 2
+  putTest "Stack test" thou $ do
+    for_ thou  \_ -> putInt8 2

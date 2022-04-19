@@ -238,18 +238,18 @@ execBuilder bldr = do
   -- To memcpy from one ArrayBuffer to another, apparently we have to first view
   -- both ArrayBuffers as ArrayView (Typed Array).
   newview <- liftEffect (AT.whole buf :: Effect Uint8Array)
-  _ <- foldM
+  _ <- liftEffect $ foldBuilder builderToJSValue
     ( \offset a -> do
         aview <- liftEffect $ toUint8Array a
         _ <- liftEffect $ AT.setTyped newview (Just offset) aview
         pure $ offset + AT.byteLength aview
     ) 0 bldr
   pure buf
- where
-  toUint8Array :: DataBuff -> Effect Uint8Array
-  toUint8Array (Buff ab) = AT.whole ab
-  toUint8Array (View dv) =
-    AT.part (DV.buffer dv) (DV.byteOffset dv) (DV.byteLength dv)
+
+toUint8Array :: DataBuff -> Effect Uint8Array
+toUint8Array (Buff ab) = AT.whole ab
+toUint8Array (View dv) =
+  AT.part (DV.buffer dv) (DV.byteOffset dv) (DV.byteLength dv)
 
 -- | Serialize an 8-bit unsigned integer (byte) into a new `ArrayBuffer`.
 encodeUint8 :: forall m. (MonadEffect m) => UInt -> m ArrayBuffer
@@ -348,3 +348,13 @@ encodeFloat64le x = do
   buf <- liftEffect $ AB.empty 8
   _ <- liftEffect $ DV.setFloat64le (DV.whole buf) 0 x
   pure buf
+
+-- utilities for working in JS
+foreign import data JSValue :: Type
+foreign import nullValue :: JSValue
+foreign import createJSValue :: forall a. a -> JSValue
+foreign import foldBuilder :: (Builder -> JSValue) -> (Int -> DataBuff -> Effect Int) -> Int -> Builder -> Effect Int
+
+builderToJSValue :: Builder -> JSValue
+builderToJSValue Null = nullValue
+builderToJSValue (Node left dataBuff right) = createJSValue { left, right, dataBuff }
