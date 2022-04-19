@@ -5,35 +5,41 @@ exports.createJSValue = function (x) {
 };
 
 exports.foldBuilder = function (builderToJSValue) {
-  return function (effectFnIntDataBuff) {
-    return function (int) {
-      return function (builder) {
-        // effect int
-        return function () {
-          let values = [];
-          let stack = [];
-          let curr = builderToJSValue(builder);
-          let prev = null;
+  return function (effectFnUint8ArrayIntDataBuff) {
+    return function (builder) {
+      // effect arrayBuffer
+      return function () {
+        let values = [];
+        let stack = [];
+        let curr = builderToJSValue(builder);
+        let prev = null;
 
-          while (stack.length !== 0 || curr != null) {
-            if (curr != null) {
-              stack.push(curr);
-              curr = builderToJSValue(curr.left);
-            } else {
-              prev = stack.pop();
-              values.push(prev.dataBuff);
-              curr = builderToJSValue(prev.right);
-            }
+        while (stack.length !== 0 || curr != null) {
+          if (curr != null) {
+            stack.push(curr);
+            curr = builderToJSValue(curr.left);
+          } else {
+            prev = stack.pop();
+            values.push(prev.dataBuff);
+            curr = builderToJSValue(prev.right);
           }
+        }
 
-          let acc = int;
-          for (let i = 0; i < values.length; i++) {
-            let value = values[i];
-            acc = effectFnIntDataBuff(i)(value)();
-          }
+        let buffer = new ArrayBuffer(values.length);
+        // let view = new DataView(buffer);
+        let view = new Uint8Array(buffer);
 
-          return acc;
-        };
+        let acc = 0;
+        for (let i = 0; i < values.length; i++) {
+          console.log("acc", acc);
+          let value = values[i];
+          console.log("value", value);
+          let result = effectFnUint8ArrayIntDataBuff(view)(acc)(value)();
+          console.log("result", result);
+          acc = result;
+        }
+
+        return buffer;
       };
     };
   };

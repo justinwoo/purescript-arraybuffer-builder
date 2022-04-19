@@ -86,7 +86,6 @@ module Data.ArrayBuffer.Builder.Internal
 , execBuilder
 , length
 , foldl
-, foldM
 , singleton
 , cons
 , snoc
@@ -203,11 +202,6 @@ foldl :: forall b. (b -> DataBuff -> b) -> b -> Builder -> b
 foldl _ a Null = a
 foldl f a (Node l x r) = foldl f (f (foldl f a l) x) r
 
--- | Monomorphic foldM copied from
--- | [`Data.Foldable.foldM`](https://pursuit.purescript.org/packages/purescript-foldable-traversable/4.1.1/docs/Data.Foldable#v:foldM)
-foldM :: forall b m. (Monad m) => (b -> DataBuff -> m b) -> b -> Builder -> m b
-foldM f a0 = foldl (\ma b -> ma >>= flip f b) (pure a0)
-
 -- | Construct a `Builder` with a single `DataBuff`. *O(1)*
 singleton :: DataBuff -> Builder
 singleton buf = Node Null buf Null
@@ -231,19 +225,19 @@ snoc bs x = Node bs x Null
 -- | Build a single `ArrayBuffer` from a `Builder`. *O(n)*
 execBuilder :: forall m. (MonadEffect m) => Builder -> m ArrayBuffer
 execBuilder bldr = do
-  let buflen = length bldr
+  -- let buflen = length bldr
   -- Allocate the final ArrayBuffer
-  buf <- liftEffect $ AB.empty buflen
+  -- buf <- liftEffect $ AB.empty buflen
   -- Then copy each ArrayBuffer into the final ArrayBuffer.
   -- To memcpy from one ArrayBuffer to another, apparently we have to first view
   -- both ArrayBuffers as ArrayView (Typed Array).
-  newview <- liftEffect (AT.whole buf :: Effect Uint8Array)
-  _ <- liftEffect $ foldBuilder builderToJSValue
-    ( \offset a -> do
+  -- newview <- liftEffect (AT.whole buf :: Effect Uint8Array)
+  buf <- liftEffect $ foldBuilder builderToJSValue
+    ( \view offset a -> do
         aview <- liftEffect $ toUint8Array a
-        _ <- liftEffect $ AT.setTyped newview (Just offset) aview
+        _ <- liftEffect $ AT.setTyped view (Just offset) aview
         pure $ offset + AT.byteLength aview
-    ) 0 bldr
+    ) bldr
   pure buf
 
 toUint8Array :: DataBuff -> Effect Uint8Array
@@ -353,7 +347,7 @@ encodeFloat64le x = do
 foreign import data JSValue :: Type
 foreign import nullValue :: JSValue
 foreign import createJSValue :: forall a. a -> JSValue
-foreign import foldBuilder :: (Builder -> JSValue) -> (Int -> DataBuff -> Effect Int) -> Int -> Builder -> Effect Int
+foreign import foldBuilder :: (Builder -> JSValue) -> (Uint8Array -> Int -> DataBuff -> Effect Int) -> Builder -> Effect ArrayBuffer
 
 builderToJSValue :: Builder -> JSValue
 builderToJSValue Null = nullValue
