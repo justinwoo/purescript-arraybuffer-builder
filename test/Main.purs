@@ -3,13 +3,16 @@ module Test.Main where
 import Data.ArrayBuffer.Builder
 
 import Control.Monad.Writer.Trans (tell)
+import Data.Array as Array
 import Data.ArrayBuffer.Builder.Internal (cons, encodeInt8, execBuilder, length, singleton, (<>>))
 import Data.ArrayBuffer.DataView as DV
 import Data.ArrayBuffer.Typed as AT
 import Data.ArrayBuffer.Types (ArrayBuffer, Uint8Array)
+import Data.Foldable (for_)
 import Data.UInt as UInt
+import Data.Unfoldable (replicateA)
 import Effect (Effect)
-import Prelude (Unit, bind, pure, discard, map, negate, ($), (<$>), (=<<), (<>))
+import Prelude (Unit, bind, discard, map, negate, pure, unit, ($), (<$>), (<>), (=<<))
 import Test.Assert (assertEqual')
 
 asBytes :: ArrayBuffer -> Effect (Array Int)
@@ -113,3 +116,6 @@ main = do
     pure $ ((singleton b1 <> singleton b2) <> (singleton b3 <> singleton b4))
          <> ((singleton b5 <> singleton b6) <> (singleton b7 <> singleton b8))
 
+  let tenthou = Array.replicate 10000 2
+  putTest "Stack test" tenthou $ do
+    for_ tenthou  \_ -> putInt8 2

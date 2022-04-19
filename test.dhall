@@ -12,5 +12,10 @@ let conf = ./spago.dhall
 
 in conf //
   { sources = conf.sources # [ "test/**/*.purs" ]
-  , dependencies = conf.dependencies # [ "assert" ]
+  , dependencies = conf.dependencies #
+    [ "assert"
+    , "arrays"
+    , "foldable-traversable"
+    , "unfoldable"
+    ]
   }
