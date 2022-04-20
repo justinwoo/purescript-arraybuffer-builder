@@ -2,14 +2,15 @@
 -}
 { name = "arraybuffer-builder"
 , dependencies =
-  [ "effect"
+  [ "arraybuffer"
+  , "arraybuffer-types"
+  , "effect"
   , "float32"
   , "maybe"
   , "prelude"
+  , "tailrec"
   , "transformers"
   , "uint"
-  , "arraybuffer-types"
-  , "arraybuffer"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]

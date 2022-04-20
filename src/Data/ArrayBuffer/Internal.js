@@ -27,15 +27,13 @@ exports.foldBuilder = function (builderToJSValue) {
 
         let buffer = new ArrayBuffer(values.length);
         // let view = new DataView(buffer);
+        // need to use the correct view constructor based on some criteria?
         let view = new Uint8Array(buffer);
 
         let acc = 0;
         for (let i = 0; i < values.length; i++) {
-          console.log("acc", acc);
           let value = values[i];
-          console.log("value", value);
           let result = effectFnUint8ArrayIntDataBuff(view)(acc)(value)();
-          console.log("result", result);
           acc = result;
         }
 
